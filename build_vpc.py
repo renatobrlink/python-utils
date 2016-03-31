@@ -1,35 +1,54 @@
 import time
 import boto3
 
+##### Iniciando Libs
 ec2 = boto3.client('ec2')
 rscec2 = boto3.resource('ec2')
 
-#### Setando Variaveis
-imageid = 'ami-08111162'
-tagEnv = 'Saori'
-sgname = 'SG-VPC-SSH'
+##### Setando Variaveis nao Hardcoded
+
+## Nome da Tag do Enviroment
+tagEnv = 'Shyriu'
+
+## Nome da Imagem da instancia
+imageId = 'ami-08111162'
+
+## Nome do SecurityGroup
+sgName = 'SG-VPC-SSH'
+
+## Nome da AZ 1 a ser utilizada
+az1 = 'us-east-1a'
+
+## Cidr Block a ser usado no AZ 1
+cidAz1 = '172.24.24.0/24'
+
+## Nome da AZ 1 a ser utilizada
+az2 = 'us-east-1e'
+
+## Cidr Block a ser usado no AZ 2
+cidAz2 = '172.24.25.0/24'
 
 ##### Codigo inicial
 
 ##### Funcao para Checagem de criacao de servico com Sucesso
-def rsccheck(rscrtn,rsc,rscid):
-        if rscrtn['ResponseMetadata']['HTTPStatusCode'] == 200:
-            print "Recurso %s criado com sucesso, segue o ID: %s" % (rsc,rscid)  
+def rscCheck(rscRtn,rsc,rscId):
+        if rscRtn['ResponseMetadata']['HTTPStatusCode'] == 200:
+            print "Recurso %s criado com sucesso, segue o ID: %s" % (rsc,rscId)  
         else:
             print "Erro ao criar o recurso %s!" % rsc
 
 ##### Funcao para Checagem de atachamento de servico com Sucesso
-def atccheck(atcrtn,rsc,rscatc):
-        if atcrtn['ResponseMetadata']['HTTPStatusCode'] == 200:
-            print "Recurso %s atachado com sucesso ao recurso %s" % (rscatc,rsc)  
+def atcCheck(atcRtn,rsc,rscAtc):
+        if atcRtn['ResponseMetadata']['HTTPStatusCode'] == 200:
+            print "Recurso %s atachado com sucesso ao recurso %s!" % (rscAtc,rsc)  
         else:
-            print "Erro ao atachar o recurso %s!" % rscatc
+            print "Erro ao atachar o recurso %s!" % rscAtc
 
 
 ##### Funcao para Tagueamento de recursos.
-def tagrsc(rscid):
-    rsctag = ec2.create_tags(
-        Resources=[rscid],
+def tagRsc(rscId):
+    rscTag = ec2.create_tags(
+        Resources=[rscId],
         Tags=[
             {
                 'Key': 'Name',
@@ -37,11 +56,11 @@ def tagrsc(rscid):
             },
             ]
         )
-    return rsctag;
+    return rscTag;
 
 ##### Fincao para Checagem de Tag setada no Servico
-def tagcheck(tagrtn,rsc):
-        if tagrtn['ResponseMetadata']['HTTPStatusCode'] == 200:
+def tagCheck(tagRtn,rsc):
+        if tagRtn['ResponseMetadata']['HTTPStatusCode'] == 200:
             print "Tag no recurso %s criada com sucesso!" % rsc
         else:
             print "Erro ao criar a tag no recurso %s!" % rsc
@@ -49,122 +68,122 @@ def tagcheck(tagrtn,rsc):
 #############################################################
 
 ##### Servico AWS
-rscvpc = 'VPC'
+rscVpc = 'VPC'
 
 ##### Criando uma VPC nova.
-vpc_new = ec2.create_vpc(
+vpc = ec2.create_vpc(
 	CidrBlock = '172.24.0.0/16'
 	) 
 
 ##### Obtendo o VPC ID
-vpcid = vpc_new['Vpc']['VpcId']
+vpcId = vpc['Vpc']['VpcId']
 
 ##### Checando criacao do recurso
-rsccheck(vpc_new,rscvpc,vpcid)
+rscCheck(vpc,rscVpc,vpcId)
     
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(vpcid)
+rscTag = tagRsc(vpcId)
 
 ##### Checando Tag
-tagcheck(rsctag,rscvpc)
+tagCheck(rscTag,rscVpc)
 
 #############################################################
 
 ##### Servico AWS
-rscig = 'Insternet Gateway'
+rscIg = 'Insternet Gateway'
 
 ##### Criando um Internet Gateway novo.
-ig_new = ec2.create_internet_gateway()
+ig = ec2.create_internet_gateway()
 
 ##### Obtendo o VPC ID
-igid = ig_new['InternetGateway']['InternetGatewayId']
+igId = ig['InternetGateway']['InternetGatewayId']
 
 ##### Checando criacao do recurso
-rsccheck(ig_new,rscig,igid)
+rscCheck(ig,rscIg,igId)
     
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(igid)
+rscTag = tagRsc(igId)
 
 ##### Checando Tag
-tagcheck(rsctag,rscig)
+tagCheck(rscTag,rscIg)
 
 ##### Atachar o IG a VPC
-attach_ig = ec2.attach_internet_gateway(
-    InternetGatewayId=igid,
-    VpcId=vpcid
+atcIg = ec2.attach_internet_gateway(
+    InternetGatewayId=igId,
+    VpcId=vpcId
 )
 
 ##### Checando atachamento do recurso
-atccheck(attach_ig,rscvpc,rscig)
+atcCheck(atcIg,rscVpc,rscIg)
 
 #############################################################
 
 ##### Servico AWS
-rscsubA = 'SubnetA'
+rscSub1 = 'Subnet A'
 
-##### Criando a Subnet na AZ A
-subnet_azA = ec2.create_subnet(
-	CidrBlock = '172.24.24.0/24',
-	VpcId = vpcid,
-	AvailabilityZone = 'us-east-1a'
+##### Criando a Subnet na AZ 1
+subnetAz1 = ec2.create_subnet(
+	CidrBlock = cidAz1,
+	VpcId = vpcId,
+	AvailabilityZone = az1
 	) 
 
 ##### Obtendo ID da Subnet
-subnetidA = subnet_azA['Subnet']['SubnetId']
+subnetId1 = subnetAz1['Subnet']['SubnetId']
 
 ##### Checando criacao do recurso
-rsccheck(subnet_azA,rscsubA,subnetidA)
+rscCheck(subnetAz1,rscSub1,subnetId1)
 
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(subnetidA)
+rscTag = tagRsc(subnetId1)
 
 ##### Checando Tag
-tagcheck(rsctag,rscsubA)
+tagCheck(rscTag,rscSub1)
 
 #############################################################
 
 ##### Servico AWS
-rscsubE = 'SubnetE'
+rscSub2 = 'Subnet E'
 
-##### Criando a Subnet na AZ E
-subnet_azE = ec2.create_subnet(
-    CidrBlock = '172.24.25.0/24',
-    VpcId = vpcid,
-    AvailabilityZone = 'us-east-1e'
+##### Criando a Subnet na AZ 2
+subnetAz2 = ec2.create_subnet(
+    CidrBlock = cidAz2,
+    VpcId = vpcId,
+    AvailabilityZone = az2
     ) 
 
 ##### Obtendo ID da Subnet
-subnetidE = subnet_azE['Subnet']['SubnetId']
+subnetId2 = subnetAz2['Subnet']['SubnetId']
 
 ##### Checando criacao do recurso
-rsccheck(subnet_azE,rscsubE,subnetidE)
+rscCheck(subnetAz2,rscSub2,subnetId2)
 
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(subnetidE)
+rscTag = tagRsc(subnetId2)
 
 ##### Checando Tag
-tagcheck(rsctag,rscsubE)
+tagCheck(rscTag,rscSub2)
 
 #############################################################
 
 ##### Servico AWS
-rscsg = 'SecurityGroup'
+rscSg = 'SecurityGroup'
 
 ##### Criando o Security Group
-securityGroupSSH = ec2.create_security_group(
-    GroupName = sgname,
+sgVpcSSH = ec2.create_security_group(
+    GroupName = sgName,
     Description = 'Acesso SSH',
-    VpcId = vpcid
+    VpcId = vpcId
 )
 
 ##### Obtendo ID do Security Group
-sgid = securityGroupSSH['GroupId']
+sgId = sgVpcSSH['GroupId']
 
 ##### Obtendo dados do SG
-sg = rscec2.SecurityGroup(sgid)
+sg = rscec2.SecurityGroup(sgId)
 
 ##### Autorizando acesso
-sgauthorize = sg.authorize_ingress(
+sgAuthorize = sg.authorize_ingress(
     IpPermissions=[
         {
             'IpProtocol': 'tcp',
@@ -172,8 +191,8 @@ sgauthorize = sg.authorize_ingress(
             'ToPort': 22,
             'UserIdGroupPairs': [
                 {
-                    'GroupId': sgid,
-                    'VpcId': vpcid
+                    'GroupId': sgId,
+                    'VpcId': vpcId
                 },
             ],
             'IpRanges': [
@@ -186,38 +205,38 @@ sgauthorize = sg.authorize_ingress(
 )
 
 ##### Checando criacao do recurso
-rsccheck(securityGroupSSH,rscsg,sgid)
+rscCheck(sgVpcSSH,rscSg,sgId)
 
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(sgid)
+rscTag = tagRsc(sgId)
 
 ##### Checando Tag
-tagcheck(rsctag,rscsg)
+tagCheck(rscTag,rscSg)
 
 #############################################################
 
 ##### Servico AWS
-rscinA = 'Instacia AZ A'
-rscinE = 'Instacia AZ E'
+rscIn1 = 'Instacia AZ A'
+rscIn2 = 'Instacia AZ E'
 
-##### Criando instancia Az A
-instanceazA = ec2.run_instances(
-	ImageId = imageid,
+##### Criando instancia AZ 1
+instanceAz1 = ec2.run_instances(
+	ImageId = imageId,
 	MinCount = 1,
     MaxCount = 1,
     InstanceType = 't2.micro',
-    SubnetId = subnetidA,
-    SecurityGroupIds = [sgid]
+    SubnetId = subnetId1,
+    SecurityGroupIds = [sgId]
 	)
 
-##### Criando instancia Az E
-instanceazE = ec2.run_instances(
-	ImageId = imageid,
+##### Criando instancia AZ 2
+instanceAz2 = ec2.run_instances(
+	ImageId = imageId,
 	MinCount = 1,
     MaxCount = 1,
     InstanceType = 't2.micro',
-    SubnetId = subnetidE,
-    SecurityGroupIds = [sgid]
+    SubnetId = subnetId2,
+    SecurityGroupIds = [sgId]
 	)
 
 ##### Estado da instancia
@@ -228,12 +247,12 @@ count = 0
 
 ##### Iniciando o While para checagem de estado do servidor.
 while state != 'running' and count <= 30:
-	print "Aguardando instancia ser iniciada tentativa numero %d. (30s)" % count
+	print "Aguardando instancias serem iniciadas, tentativa numero %d. (30s)" % count
 	instance = ec2.describe_instances(
 	Filters=[
         {
             'Name': 'instance-id',
-            'Values': [instanceazA['Instances'][0]['InstanceId']
+            'Values': [instanceAz1['Instances'][0]['InstanceId']
             ]
         },
     ])
@@ -244,88 +263,88 @@ while state != 'running' and count <= 30:
 		count = count + 1
 
 
-##### Instancia AZ A
+##### Instancia AZ 1
 ##### Obtendo ID da instancia 
-instanceazAID = instanceazA['Instances'][0]['InstanceId']
+InstanceAz1Id = instanceAz1['Instances'][0]['InstanceId']
 
 ##### Checando criacao do recurso
-rsccheck(instanceazA,rscinA,instanceazAID)
+rscCheck(instanceAz1,rscIn1,InstanceAz1Id)
 
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(instanceazAID)
+rscTag = tagRsc(InstanceAz1Id)
 
 ##### Checando Tag
-tagcheck(rsctag,rscinA)
+tagCheck(rscTag,rscIn1)
 
 ##### Servico AWS
-rsceipA = 'EIP Instacia AZ A'
+rscEipAz1 = 'EIP Instacia AZ A'
 
 ##### Alocando EIP para utilizar
-eipazA = ec2.allocate_address(
+eipAz1 = ec2.allocate_address(
     Domain='vpc'
 )
 
-##### Obtendo o PuclibIP Instancia A
-publicipA = eipazA['PublicIp']
+##### Obtendo o PuclibIP Instancia 1
+publicIp1 = eipAz1['PublicIp']
 
-##### Obtendo o ID do PublicIP da Instancia A
-eipidA = eipazA['AllocationId']
+##### Obtendo o ID do PublicIP da Instancia 1
+eipId1 = eipAz1['AllocationId']
 
 ##### Checando criacao do recurso
-rsccheck(eipazA,rsceipA,eipidA)
+rscCheck(eipAz1,rscEipAz1,eipId1)
 
-##### Associando o IP para a Instancia A
-associateipA = ec2.associate_address(
-    InstanceId=instanceazAID,
-    PublicIp=publicipA
-#    AllocationId=eipidA
+##### Associando o IP para a Instancia 1
+associateIp1 = ec2.associate_address(
+    InstanceId=InstanceAz1Id,
+    PublicIp=publicIp1
+#    AllocationId=eipId1
 )
 
 ##### Checando atachmaneto do recurso
-atccheck(associateipA,rscinA,rsceipA)
+atcCheck(associateIp1,rscIn1,rscEipAz1)
 
-##### Exibindo o IP na AZ A e atachado a instancia AZ A
-print "Recurso %s possui o IP: %s" % (rsceipA,publicipA)
+##### Exibindo o IP na AZ 1 e atachado a instancia AZ 1
+print "Recurso %s possui o IP: %s" % (rscEipAz1,publicIp1)
    
-##### Instancia AZ E
+##### Instancia AZ 2
 ##### Obtendo ID da instancia 
-instanceazEID = instanceazE['Instances'][0]['InstanceId']
+instanceAz2Id = instanceAz2['Instances'][0]['InstanceId']
 
 ##### Checando criacao do recurso
-rsccheck(instanceazE,rscinE,instanceazEID)
+rscCheck(instanceAz2,rscIn2,instanceAz2Id)
 
 ##### Setando Tag na VPC Criada
-rsctag = tagrsc(instanceazEID)
+rscTag = tagRsc(instanceAz2Id)
 
 ##### Checando Tag
-tagcheck(rsctag,rscinE)
+tagCheck(rscTag,rscIn2)
 
 ##### Servico AWS
-rsceipE = 'EIP Instacia AZ E'
+rscIp2 = 'EIP Instacia AZ E'
 
 ##### Alocando EIP para utilizar
-eipazE = ec2.allocate_address(
+eipAz2 = ec2.allocate_address(
     Domain='vpc'
 )
 
-##### Obtendo o PuclibIP Instancia E
-publicipE = eipazE['PublicIp']
+##### Obtendo o PuclibIP Instancia 2
+publicipE = eipAz2['PublicIp']
 
-##### Obtendo o ID do PublicIP da Instancia E
-eipidE = eipazE['AllocationId']
+##### Obtendo o ID do PublicIP da Instancia 2
+eipidE = eipAz2['AllocationId']
 
 ##### Checando criacao do recurso
-rsccheck(eipazE,rsceipE,eipidE)
+rscCheck(eipAz2,rscIp2,eipidE)
 
-##### Associando o IP para a Instancia A
+##### Associando o IP para a Instancia 2
 associateipE = ec2.associate_address(
-    InstanceId=instanceazEID,
+    InstanceId=instanceAz2Id,
     PublicIp=publicipE
-#    AllocationId=eipidA
+#    AllocationId=eipId1
 )
 
 ##### Checando criacao do recurso
-atccheck(associateipE,rscinE,rsceipE)
+atcCheck(associateipE,rscIn2,rscIp2)
 
-##### Exibindo o IP na AZ E e atachado a instancia AZ E
-print "Recurso %s possui o IP: %s" % (rsceipE,publicipE)
+##### Exibindo o IP na AZ 2 e atachado a instancia AZ 2
+print "Recurso %s possui o IP: %s" % (rscIp2,publicipE)
