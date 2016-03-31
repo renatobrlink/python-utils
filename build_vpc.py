@@ -1,113 +1,143 @@
 import time
 import boto3
 
+ec2 = boto3.client('ec2')
+
 #### Setando Variaveis
 
 imageid = 'ami-08111162'
-tagEnv = 'Shyriu'
+tagEnv = 'Yoga'
 
 ##### Codigo inicial
 
-ec2 = boto3.client('ec2')
+##### Funcao para Checagem de criacao de servico com Sucesso
+def rsccheck(rscrtn,rsc,rscid):
+        if rscrtn['ResponseMetadata']['HTTPStatusCode'] == 200:
+            print "Recurso %s criado com sucesso, segue o ID: %s" % (rsc,rscid)  
+        else:
+            print "Erro ao criar o recurso %s!" % rsc
 
+##### Funcao para Tagueamento de recursos.
+def tagrsc(rscid):
+    rsctag = ec2.create_tags(
+        Resources=[rscid],
+        Tags=[
+            {
+                'Key': 'Name',
+                'Value': tagEnv
+            },
+            ]
+        )
+    return rsctag;
+
+##### Fincao para Checagem de Tag setada no Servico
+def tagcheck(tagrtn,rsc):
+        if tagrtn['ResponseMetadata']['HTTPStatusCode'] == 200:
+            print "Tag no recurso %s criada com sucesso!" % rsc
+        else:
+            print "Erro ao criar a tag no recurso %s!" % rsc
+
+#############################################################
+
+##### Servico AWS
+rsc = 'VPC'
+
+##### Criando uma VPC nova.
 vpc_new = ec2.create_vpc(
 	CidrBlock = '172.24.0.0/16'
 	) 
 
+##### Obtendo o VPC ID
 vpcid = vpc_new['Vpc']['VpcId']
-print "VPC criada com Sucesso, segue ID: %s" % vpcid
 
-vpctag = ec2.create_tags(
-    Resources=[vpcid],
-    Tags=[
-        {
-            'Key': 'Name',
-            'Value': tagEnv
-        },
-    ]
-)
+##### Checando criacao do recurso
+rsccheck(vpc_new,rsc,vpcid)
+    
+##### Setando Tag na VPC Criada
+rsctag = tagrsc(vpcid)
 
-awssrv = 'VPC'
-if vpctag['ResponseMetadata']['HTTPStatusCode'] == 200:
-	print "Tag no service %s criada com sucesso!" % awssrv
-else:
-	print "Erro ao criar a tag no servico %s!" % awssrv
+##### Checando Tag
+tagcheck(rsctag,rsc)
 
+#############################################################
+
+##### Servico AWS
+rsc = 'SubnetA'
+
+##### Criando a Subnet na AZ A
 subnet_azA = ec2.create_subnet(
 	CidrBlock = '172.24.24.0/24',
 	VpcId = vpcid,
 	AvailabilityZone = 'us-east-1a'
 	) 
 
+##### Obtendo ID da Subnet
 subnetidA = subnet_azA['Subnet']['SubnetId']
-print "Subnet AZ A criada com Sucesso, segue ID: %s" % subnetidA
 
-subnetAtag = ec2.create_tags(
-    Resources=[subnetidA],
-    Tags=[
-        {
-            'Key': 'Name',
-            'Value': tagEnv
-        },
-    ]
-)
+##### Checando criacao do recurso
+rsccheck(subnet_azA,rsc,subnetidA)
 
-awssrv = 'subnetA'
-if subnetAtag['ResponseMetadata']['HTTPStatusCode'] == 200:
-	print "Tag no service %s criada com sucesso!" % awssrv
-else:
-	print "Erro ao criar a tag no servico %s!" % awssrv
+##### Setando Tag na VPC Criada
+rsctag = tagrsc(subnetidA)
 
+##### Checando Tag
+tagcheck(rsctag,rsc)
+
+#############################################################
+
+##### Servico AWS
+rsc = 'SubnetE'
+
+##### Criando a Subnet na AZ E
 subnet_azE = ec2.create_subnet(
-	CidrBlock = '172.24.25.0/24',
-	VpcId = vpcid,
-	AvailabilityZone = 'us-east-1e'
-	) 
+    CidrBlock = '172.24.25.0/24',
+    VpcId = vpcid,
+    AvailabilityZone = 'us-east-1e'
+    ) 
 
+##### Obtendo ID da Subnet
 subnetidE = subnet_azE['Subnet']['SubnetId']
-print "Subnet AZ E criada com Sucesso, segue ID: %s" % subnetidE
 
-subnetEtag = ec2.create_tags(
-    Resources=[subnetidE],
-    Tags=[
-        {
-            'Key': 'Name',
-            'Value': tagEnv
-        },
-    ]
-)
+##### Checando criacao do recurso
+rsccheck(subnet_azE,rsc,subnetidE)
 
-awssrv = 'subnetE'
-if subnetEtag['ResponseMetadata']['HTTPStatusCode'] == 200:
-	print "Tag no service %s criada com sucesso!" % awssrv
-else:
-	print "Erro ao criar a tag no servico %s!" % awssrv
+##### Setando Tag na VPC Criada
+rsctag = tagrsc(subnetidE)
 
+##### Checando Tag
+tagcheck(rsctag,rsc)
+
+#############################################################
+
+##### Servico AWS
+rsc = 'SecurityGroup'
+
+##### Criando o Security Group
 securityGroupSSH = ec2.create_security_group(
     GroupName = 'SG-VPC-SSH',
     Description = 'Acesso SSH',
     VpcId = vpcid
 )
 
+##### Obtendo ID do Security Group
 sgid = securityGroupSSH['GroupId']
-print "SecurityGroup criado com Sucesso, segue ID: %s" % sgid
 
-sgtag = ec2.create_tags(
-    Resources=[sgid],
-    Tags=[
-        {
-            'Key': 'Name',
-            'Value': tagEnv
-        },
-    ]
-)
+##### Checando criacao do recurso
+rsccheck(securityGroupSSH,rsc,sgid)
 
-awssrv = 'SecurityGroup'
-if sgtag['ResponseMetadata']['HTTPStatusCode'] == 200:
-	print "Tag no service %s criada com sucesso!" % awssrv
-else:
-	print "Erro ao criar a tag no servico %s!" % awssrv
+##### Setando Tag na VPC Criada
+rsctag = tagrsc(sgid)
 
+##### Checando Tag
+tagcheck(rsctag,rsc)
+
+#############################################################
+
+##### Servico AWS
+rscA = 'Instacia AZ A'
+rscE = 'Instacia AZ E'
+
+##### Criando instancia Az A
 instanceazA = ec2.run_instances(
 	ImageId = imageid,
 	MinCount = 1,
@@ -117,6 +147,7 @@ instanceazA = ec2.run_instances(
     SecurityGroupIds = [sgid]
 	)
 
+##### Criando instancia Az E
 instanceazE = ec2.run_instances(
 	ImageId = imageid,
 	MinCount = 1,
@@ -126,10 +157,13 @@ instanceazE = ec2.run_instances(
     SecurityGroupIds = [sgid]
 	)
 
-# Iniciando o While
+##### Estado da instancia
 state = 'pending'
+
+##### Contador
 count = 0
 
+##### Iniciando o While para checagem de estado do servidor.
 while state != 'running' and count <= 30:
 	print "Aguardando instancia ser iniciada tentativa numero %d. (30s)" % count
 	instance = ec2.describe_instances(
@@ -145,47 +179,36 @@ while state != 'running' and count <= 30:
 		state = 'running'
 	else:
 		count = count + 1
-   
+
+##### Instancia AZ A
+##### Obtendo ID da instancia 
 instanceazAID = instanceazA['Instances'][0]['InstanceId']
 
-instanceAtag = ec2.create_tags(
-    Resources=[instanceazAID],
-    Tags=[
-        {
-            'Key': 'Name',
-            'Value': tagEnv
-        },
-    ]
-)
+##### Checando criacao do recurso
+rsccheck(instanceazA,rscA,instanceazAID)
 
-awssrv = 'Instancia A'
-if instanceAtag['ResponseMetadata']['HTTPStatusCode'] == 200:
-	print "Tag no service %s criada com sucesso!" % awssrv
-else:
-	print "Erro ao criar a tag no servico %s!" % awssrv
+##### Setando Tag na VPC Criada
+rsctag = tagrsc(instanceazAID)
 
-#instanceazAIP = instanceazA['Instances'][0]['PublicIpAddress']
-print "Instancia da AZ A criada com Sucesso, segue ID: %s" % instanceazAID
-#print "IP da Instancia da AZ A: %s" % instanceazAIP
-
+##### Checando Tag
+tagcheck(rsctag,rscA)
+   
+##### Instancia AZ E
+##### Obtendo ID da instancia 
 instanceazEID = instanceazE['Instances'][0]['InstanceId']
 
-instanceEtag = ec2.create_tags(
-    Resources=[instanceazEID],
-    Tags=[
-        {
-            'Key': 'Name',
-            'Value': tagEnv
-        },
-    ]
-)
+##### Checando criacao do recurso
+rsccheck(instanceazE,rscE,instanceazEID)
 
-awssrv = 'Instancia E'
-if instanceEtag['ResponseMetadata']['HTTPStatusCode'] == 200:
-	print "Tag no service %s criada com sucesso!" % awssrv
-else:
-	print "Erro ao criar a tag no servico %s!" % awssrv
+##### Setando Tag na VPC Criada
+rsctag = tagrsc(instanceazEID)
+
+##### Checando Tag
+tagcheck(rsctag,rscE)
+
+
+#instanceazAIP = instanceazA['Instances'][0]['PublicIpAddress']
+#print "IP da Instancia da AZ A: %s" % instanceazAIP
 
 #instanceazEIP = instanceazE['Instances'][0]['PublicIpAddress']
-print "Instancia da AZ E criada com Sucesso, segue ID: %s" % instanceazEID
 #print "IP da Instancia da AZ E: %s" % instanceazEIP
