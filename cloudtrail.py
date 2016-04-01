@@ -1,6 +1,7 @@
 import time
 import boto3
 
+##### Iniciando Libs
 s3 = boto3.client('s3')
 cloudtrail = boto3.client('cloudtrail')
 
