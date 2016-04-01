@@ -15,7 +15,6 @@ regionName = 'us-west-1'
 ## Nome na Trilha do Cloudtrail
 trailName = 'USTrail'
 
-
 #################################################
 
 ##### Funcao para Checagem de criacao do recurso com Sucesso
@@ -44,6 +43,7 @@ RequestId = bucketUsCTrail['ResponseMetadata']['RequestId']
 ##### Checando criacao do recurso
 rscCheck(bucketUsCTrail,rscBkt,RequestId)
 
+##### Setando policy no Bucket do S3
 s3Policy = s3.put_bucket_policy(
     Bucket = bucketName,
     Policy = """{
