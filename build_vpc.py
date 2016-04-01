@@ -67,7 +67,7 @@ def tagCheck(tagRtn,rsc):
 
 #############################################################
 
-##### Servico AWS
+##### Recurso AWS
 rscVpc = 'VPC'
 
 ##### Criando uma VPC nova.
@@ -89,7 +89,7 @@ tagCheck(rscTag,rscVpc)
 
 #############################################################
 
-##### Servico AWS
+##### Recurso AWS
 rscIg = 'Insternet Gateway'
 
 ##### Criando um Internet Gateway novo.
@@ -118,7 +118,7 @@ atcCheck(atcIg,rscVpc,rscIg)
 
 #############################################################
 
-##### Servico AWS
+##### Recurso AWS
 rscSub1 = 'Subnet A'
 
 ##### Criando a Subnet na AZ 1
@@ -142,7 +142,7 @@ tagCheck(rscTag,rscSub1)
 
 #############################################################
 
-##### Servico AWS
+##### Recurso AWS
 rscSub2 = 'Subnet E'
 
 ##### Criando a Subnet na AZ 2
@@ -166,7 +166,7 @@ tagCheck(rscTag,rscSub2)
 
 #############################################################
 
-##### Servico AWS
+##### Recurso AWS
 rscSg = 'SecurityGroup'
 
 ##### Criando o Security Group
@@ -215,7 +215,7 @@ tagCheck(rscTag,rscSg)
 
 #############################################################
 
-##### Servico AWS
+##### Recurso AWS
 rscIn1 = 'Instacia AZ A'
 rscIn2 = 'Instacia AZ E'
 
@@ -276,7 +276,7 @@ rscTag = tagRsc(InstanceAz1Id)
 ##### Checando Tag
 tagCheck(rscTag,rscIn1)
 
-##### Servico AWS
+##### Recurso AWS
 rscEipAz1 = 'EIP Instacia AZ A'
 
 ##### Alocando EIP para utilizar
@@ -319,7 +319,7 @@ rscTag = tagRsc(instanceAz2Id)
 ##### Checando Tag
 tagCheck(rscTag,rscIn2)
 
-##### Servico AWS
+##### Recurso AWS
 rscIp2 = 'EIP Instacia AZ E'
 
 ##### Alocando EIP para utilizar
